@@ -2,7 +2,6 @@
 Generate fake data for schools infection survey raw input data.
 """
 from mimesis.schema import Field, Schema
-from mimesis.enums import Gender
 import pandas as pd
 
 
@@ -45,8 +44,8 @@ def generate_survey_participants(file_date, records, school_urns):
     survey_participants_description = (
         lambda: {
             'participant_type': _('choice', items=['type_1', 'type_2']),  # Assume we don't need real types, but do need enrolment questions per type
-            'participant_id': _('random.custom_code', mask='@#########', char='@', digit='#'),
-            'parent_participant_id': _('random.custom_code', mask='@#########', char='@', digit='#'),
+            'participant_id': _('random.custom_code', mask='P#########', char='@', digit='#'),
+            'parent_participant_id': _('random.custom_code', mask='P#########', char='@', digit='#'),
             'participant_first_nm': _('person.first_name'),
             'participant_family_name': _('person.last_name'),
             'email_addrs': _('person.email', domains=['gsnail.ac.uk']),
@@ -67,6 +66,26 @@ def generate_survey_participants(file_date, records, school_urns):
     return survey_participants
 
 
+def generate_survey_responses(file_date, records, participant_ids, school_ids):
+    """
+    Generate survey participant responses file. Depends on survey participants file.
+    """
+    survey_responses_description = (
+        lambda: {
+            'participant_id': _('choice', items=list(participant_ids)),
+            'question_id': _('random.custom_code', mask='Q#####', char='@', digit='#'),
+            'question_response_text': _('text.sentence'),
+            'last_change_datetime': _('datetime.formatted_datetime', fmt="%d/%m/%Y %H:%M:%S", start=1800, end=1802),
+            'record_created_datetime': _('datetime.formatted_datetime', fmt="%d/%m/%Y %H:%M:%S", start=1800, end=1802)
+        }
+    )
+
+    schema = Schema(schema=survey_responses_description)
+    survey_responses = pd.DataFrame(schema.create(iterations=records))
+    survey_responses.to_csv(f"survey_responses_{file_date}.csv", index=False)
+    return survey_responses
+
+
 if __name__ == "__main__":
     file_date = "18010101"
 
@@ -77,3 +96,10 @@ if __name__ == "__main__":
         40,
         schools["schl_urn"].unique().tolist()
         )
+
+    responses = generate_survey_responses(
+        file_date,
+        100,
+        participants["participant_id"].unique().tolist(),
+        participants["schl_urn"].unique().tolist()
+    )
