@@ -86,11 +86,11 @@ def generate_survey_responses(file_date, records, participant_ids, school_ids):
     return survey_responses
 
 
-def generate_labs_swabs(file_date, records):
+def generate_lab_swabs(file_date, records):
     """
-    Generate labs_swabs file. Depends on survey participants file.
+    Generate lab swabs file. Depends on survey participants file.
     """
-    labs_swabs_description = (
+    lab_swabs_description = (
         lambda: {
             'Sample':_('random.custom_code', mask='SIS########', digit='#'),
             'Result': _('choice', items=["Positive", "Negative"]),
@@ -100,17 +100,17 @@ def generate_labs_swabs(file_date, records):
         }
     )
 
-    schema = Schema(schema=labs_swabs_description)
-    labs_swabs = pd.DataFrame(schema.create(iterations=records))
-    labs_swabs.to_csv(f"labs_swabs_{file_date}.csv", index=False)
-    return labs_swabs
+    schema = Schema(schema=lab_swabs_description)
+    lab_swabs = pd.DataFrame(schema.create(iterations=records))
+    lab_swabs.to_csv(f"lab_swabs_{file_date}.csv", index=False)
+    return lab_swabs
 
  
-def generate_labs_saliva(file_date, records):
+def generate_lab_saliva(file_date, records):
     """
-    Generate labs_saliva file.
+    Generate lab saliva file.
     """
-    labs_saliva_description = (
+    lab_saliva_description = (
         lambda: {
             'ORDPATNAME': _('random.custom_code', mask='SIS########', digit='#'),
             'SAMPLEID': _('random.custom_code', mask='H#########', digit='#'),
@@ -118,17 +118,17 @@ def generate_labs_saliva(file_date, records):
         }
     )
 
-    schema = Schema(schema=labs_saliva_description)
-    labs_saliva = pd.DataFrame(schema.create(iterations=records))
-    labs_saliva.to_csv(f"saliva_results_{file_date}.csv", index=False)
-    return labs_saliva
+    schema = Schema(schema=lab_saliva_description)
+    lab_saliva = pd.DataFrame(schema.create(iterations=records))
+    lab_saliva.to_csv(f"saliva_results_{file_date}.csv", index=False)
+    return lab_saliva
 
   
-def generate_labs_bloods(file_date, records):
+def generate_lab_bloods(file_date, records):
     """
-    Generate labs_bloods file.
+    Generate lab bloods file.
     """
-    labs_bloods_description = (
+    lab_bloods_description = (
         lambda: {
             'specimenId': _('random.custom_code', mask='#########THR', digit='#'),
             'specimenProcessedDate': _('datetime.formatted_datetime', fmt="%Y-%m-%d" + "T" + "%H:%M:%S" + "Z",
@@ -137,10 +137,10 @@ def generate_labs_bloods(file_date, records):
         }
     )
 
-    schema = Schema(schema=labs_bloods_description)
-    labs_bloods = pd.DataFrame(schema.create(iterations=records))
-    labs_bloods.to_csv(f"labs_bloods_{file_date}.csv", index=False)
-    return labs_bloods
+    schema = Schema(schema=lab_bloods_description)
+    lab_bloods = pd.DataFrame(schema.create(iterations=records))
+    lab_bloods.to_csv(f"lab_bloods_{file_date}.csv", index=False)
+    return lab_bloods
   
   
 def generate_survey_visits(file_date, records, participant_ids, swab_barcodes, blood_barcods, saliva_barcodes):
@@ -153,7 +153,7 @@ def generate_survey_visits(file_date, records, participant_ids, swab_barcodes, b
             'visit_date': _('datetime.formatted_datetime', fmt="%Y-%m-%d %H:%M:%S UTC", start=1800, end=1802),
             'swab_Sample_barcode': _('choice', items=list(swab_barcodes) + [""]),
             'blood_thriva_barcode': _('choice', items=list(blood_barcods) + [""]),
-            'oral_swab_barcode': _('choice', items=list(saliva_barcodes)+ [""])),
+            'oral_swab_barcode': _('choice', items=list(saliva_barcodes)+ [""]),
             'last_change_datetime': _('datetime.formatted_datetime', fmt="%d/%m/%Y %H:%M:%S", start=1800, end=1802),
             'record_created_datetime': _('datetime.formatted_datetime', fmt="%d/%m/%Y %H:%M:%S", start=1800, end=1802)
         }
@@ -183,17 +183,17 @@ if __name__ == "__main__":
         participants["schl_urn"].unique().tolist()
     )
 
-    labs_swabs = generate_lab_swabs(file_date, 10)
+    lab_swabs = generate_lab_swabs(file_date, 10)
 
-    labs_saliva = generate_labs_saliva(file_date, 10)
+    lab_saliva = generate_lab_saliva(file_date, 10)
   
-    labs_bloods = generate_labs_bloods(file_date, 10)
+    lab_bloods = generate_lab_bloods(file_date, 10)
 
     visits = generate_survey_visits(
         file_date,
         100,
         participants["participant_id"].unique().tolist(),
-        labs_swabs["Sample"].unique().tolist(),
+        lab_swabs["Sample"].unique().tolist(),
         swabs["ORDPATNAME"].unique().tolist(),
         swabs["specimenId"].unique().tolist(),
         )
