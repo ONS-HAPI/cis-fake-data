@@ -138,7 +138,7 @@ def generate_lab_saliva(file_date, records):
 
     schema = Schema(schema=lab_saliva_description)
     lab_saliva = pd.DataFrame(schema.create(iterations=records))
-    lab_saliva.to_csv(f"saliva_results_{file_date}.csv", index=False)
+    lab_saliva.to_csv(f"lab_saliva_{file_date}.csv", index=False)
     return lab_saliva
 
   
