@@ -4,7 +4,6 @@ Generate fake data for schools infection survey raw input data.
 from mimesis.schema import Field, Schema
 import pandas as pd
 
-
 _ = Field('en-gb', seed=42)
 
 
@@ -43,7 +42,8 @@ def generate_survey_participants(file_date, records, school_urns):
     """
     survey_participants_description = (
         lambda: {
-            'participant_type': _('choice', items=['type_1', 'type_2']),  # Assume we don't need real types, but do need enrolment questions per type
+            'participant_type': _('choice', items=['type_1', 'type_2']),
+        # Assume we don't need real types, but do need enrolment questions per type
             'participant_id': _('random.custom_code', mask='P#########', char='@', digit='#'),
             'parent_participant_id': _('random.custom_code', mask='P#########', char='@', digit='#'),
             'participant_first_nm': _('person.first_name'),
@@ -86,6 +86,24 @@ def generate_survey_responses(file_date, records, participant_ids, school_ids):
     return survey_responses
 
 
+def generate_thriva_lab(file_date, records):
+    """
+    Generate Thriva file.
+    """
+    thriva_lab_description = (
+        lambda: {
+            'specimenId': _('random.custom_code', mask='#########THR', char='@', digit='#'),
+            'specimenProcessedDate': _('datetime.formatted_datetime', fmt="%Y-%m-%d %H:%M:%S", start=1800, end=1802),
+            'testResult': _('choice', items=['Positive', 'Negative'])
+        }
+    )
+
+    schema = Schema(schema=thriva_lab_description)
+    thriva_lab = pd.DataFrame(schema.create(iterations=records))
+    thriva_lab.to_csv(f"thriva_lab_{file_date}.csv", index=False)
+    return thriva_lab
+
+
 if __name__ == "__main__":
     file_date = "18010101"
 
@@ -95,7 +113,7 @@ if __name__ == "__main__":
         file_date,
         40,
         schools["schl_urn"].unique().tolist()
-        )
+    )
 
     responses = generate_survey_responses(
         file_date,
@@ -103,3 +121,5 @@ if __name__ == "__main__":
         participants["participant_id"].unique().tolist(),
         participants["schl_urn"].unique().tolist()
     )
+
+    thriva = generate_thriva_lab(file_date, 10)
