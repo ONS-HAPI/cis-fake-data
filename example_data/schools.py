@@ -94,7 +94,7 @@ def generate_saliva_results(file_date, records):
         lambda: {
             'ORDPATNAME': _('random.custom_code', mask='SIS########', digit='#'),
             'SAMPLEID': _('random.custom_code', mask='H#########', char='@', digit='#'),
-            'IgG Capture Result': _('choice', items=['result_1', 'result_2', 'result_3'])
+            'IgG Capture Result': _('choice', items=['#r', '#n', '#e'])
         }
     )
 
