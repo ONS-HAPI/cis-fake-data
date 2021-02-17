@@ -113,8 +113,7 @@ def generate_lab_bloods(file_date, records):
     lab_bloods_description = (
         lambda: {
             'specimenId': _('random.custom_code', mask='#########THR', digit='#'),
-            'specimenProcessedDate': _('datetime.formatted_datetime', fmt="%Y-%m-%d" + "T" + "%H:%M:%S" + "Z",
-                                       start=1800, end=1802),
+            'specimenProcessedDate': _('datetime.formatted_datetime', fmt="%Y-%m-%dT%H:%M:%SZ", start=1800, end=1802),
             'testResult': _('choice', items=['Positive', 'Negative'])
         }
     )
