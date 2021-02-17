@@ -86,22 +86,23 @@ def generate_survey_responses(file_date, records, participant_ids, school_ids):
     return survey_responses
 
 
-def generate_thriva_lab(file_date, records):
+def generate_labs_bloods(file_date, records):
     """
-    Generate Thriva file.
+    Generate labs_bloods file.
     """
-    thriva_lab_description = (
+    labs_bloods_description = (
         lambda: {
             'specimenId': _('random.custom_code', mask='#########THR', char='@', digit='#'),
-            'specimenProcessedDate': _('datetime.formatted_datetime', fmt="%Y-%m-%d %H:%M:%S", start=1800, end=1802),
+            'specimenProcessedDate': _('datetime.formatted_datetime', fmt="%Y-%m-%d" + "T" + "%H:%M:%S" + "Z",
+                                       start=1800, end=1802),
             'testResult': _('choice', items=['Positive', 'Negative'])
         }
     )
 
-    schema = Schema(schema=thriva_lab_description)
-    thriva_lab = pd.DataFrame(schema.create(iterations=records))
-    thriva_lab.to_csv(f"thriva_lab_{file_date}.csv", index=False)
-    return thriva_lab
+    schema = Schema(schema=labs_bloods_description)
+    labs_bloods = pd.DataFrame(schema.create(iterations=records))
+    labs_bloods.to_csv(f"labs_bloods_{file_date}.csv", index=False)
+    return labs_bloods
 
 
 if __name__ == "__main__":
@@ -122,4 +123,4 @@ if __name__ == "__main__":
         participants["schl_urn"].unique().tolist()
     )
 
-    thriva = generate_thriva_lab(file_date, 10)
+    labs_bloods = generate_labs_bloods(file_date, 10)
