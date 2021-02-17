@@ -86,6 +86,24 @@ def generate_survey_responses(file_date, records, participant_ids, school_ids):
     return survey_responses
 
 
+def generate_saliva_results(file_date, records):
+    """
+    Generate saliva results data.
+    """
+    saliva_results_description = (
+        lambda: {
+            'ORDPATNAME': _('random.custom_code', mask='SIS########', digit='#'),
+            'SAMPLEID': _('random.custom_code', mask='H#########', char='@', digit='#'),
+            'IgG Capture Result': _('choice', items=['result_1', 'result_2', 'result_3'])
+        }
+    )
+
+    schema = Schema(schema=saliva_results_description)
+    saliva_results = pd.DataFrame(schema.create(iterations=records))
+    saliva_results.to_csv(f"saliva_results_{file_date}.csv", index=False)
+    return saliva_results
+
+
 if __name__ == "__main__":
     file_date = "18010101"
 
@@ -103,3 +121,5 @@ if __name__ == "__main__":
         participants["participant_id"].unique().tolist(),
         participants["schl_urn"].unique().tolist()
     )
+
+    saliva = generate_saliva_results(file_date, 10)
