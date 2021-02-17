@@ -1,0 +1,2 @@
+pandas>=1.0.0
+mimesis==4.1.3
