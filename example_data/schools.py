@@ -86,6 +86,23 @@ def generate_survey_responses(file_date, records, participant_ids, school_ids):
     return survey_responses
 
 
+def generate_labs_saliva(file_date, records):
+    """
+    Generate labs_saliva file.
+    """
+    labs_saliva_description = (
+        lambda: {
+            'ORDPATNAME': _('random.custom_code', mask='SIS########', digit='#'),
+            'SAMPLEID': _('random.custom_code', mask='H#########', char='@', digit='#'),
+            'IgG Capture Result': _('choice', items=['#r', '#n', '#e'])
+        }
+    )
+
+    schema = Schema(schema=labs_saliva_description)
+    labs_saliva = pd.DataFrame(schema.create(iterations=records))
+    labs_saliva.to_csv(f"saliva_results_{file_date}.csv", index=False)
+    return labs_saliva
+
 def generate_labs_bloods(file_date, records):
     """
     Generate labs_bloods file.
@@ -123,4 +140,6 @@ if __name__ == "__main__":
         participants["schl_urn"].unique().tolist()
     )
 
+    labs_saliva = generate_saliva_results(file_date, 10)
+  
     labs_bloods = generate_labs_bloods(file_date, 10)
