@@ -150,9 +150,9 @@ def generate_survey_visits(file_date, records, participant_ids, swab_barcodes, b
         lambda: {
             'participant_id': _('choice', items=list(participant_ids)),
             'visit_date': _('datetime.formatted_datetime', fmt="%Y-%m-%d %H:%M:%S UTC", start=1800, end=1802),
-            'swab_Sample_barcode': _('choice', items=list(swab_barcodes) + [""]),
-            'blood_thriva_barcode': _('choice', items=list(blood_barcods) + [""]),
-            'oral_swab_barcode': _('choice', items=list(saliva_barcodes)+ [""]),
+            'swab_Sample_barcode': _('choice', items=list(swab_barcodes) + [pd.NA]),
+            'blood_thriva_barcode': _('choice', items=list(blood_barcods) + [pd.NA]),
+            'oral_swab_barcode': _('choice', items=list(saliva_barcodes)+ [pd.NA]),
             'last_change_datetime': _('datetime.formatted_datetime', fmt="%d/%m/%Y %H:%M:%S", start=1800, end=1802),
             'record_created_datetime': _('datetime.formatted_datetime', fmt="%d/%m/%Y %H:%M:%S", start=1800, end=1802)
         }
