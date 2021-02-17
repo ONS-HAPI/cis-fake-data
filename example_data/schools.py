@@ -68,7 +68,7 @@ def generate_survey_participants(file_date, records, school_urns):
 
 def generate_survey_responses(file_date, records, participant_ids, school_ids):
     """
-    Generate survey participant responses file. Depends on survey participants file.
+    Generate survey responses file. Depends on survey participants and schools files.
     """
     survey_responses_description = (
         lambda: {
@@ -84,6 +84,26 @@ def generate_survey_responses(file_date, records, participant_ids, school_ids):
     survey_responses = pd.DataFrame(schema.create(iterations=records))
     survey_responses.to_csv(f"survey_responses_{file_date}.csv", index=False)
     return survey_responses
+
+
+def generate_lab_swabs(file_date, records):
+    """
+    Generate lab_swabs file. Depends on survey participants file.
+    """
+    lab_swabs_description = (
+        lambda: {
+            'Sample':_('random.custom_code', mask='SIS########', char='@', digit='#'),
+            'Result': _('choice', items=["Positive", "Negative"]),
+            'Date Tested': _('datetime.formatted_datetime', fmt="%Y-%m-%d %H:%M:%S UTC", start=1800, end=1802),
+            'Seq-Target': "A gene",
+            'Seq-Result': _('choice', items=["Positive", "Negative"])
+        }
+    )
+
+    schema = Schema(schema=lab_swabs_description)
+    lab_swabs = pd.DataFrame(schema.create(iterations=records))
+    lab_swabs.to_csv(f"lab_swabs_{file_date}.csv", index=False)
+    return lab_swabs
 
 
 if __name__ == "__main__":
@@ -103,3 +123,5 @@ if __name__ == "__main__":
         participants["participant_id"].unique().tolist(),
         participants["schl_urn"].unique().tolist()
     )
+
+    swabs = generate_lab_swabs(file_date, 40)
