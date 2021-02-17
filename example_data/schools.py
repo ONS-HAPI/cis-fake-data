@@ -4,7 +4,6 @@ Generate fake data for schools infection survey raw input data.
 from mimesis.schema import Field, Schema
 import pandas as pd
 
-
 _ = Field('en-gb', seed=42)
 
 
@@ -16,7 +15,7 @@ def generate_survey_schools(file_date, records):
         lambda: {
             'schl_nm': " ".join(_('text.words', quantity=4)).title(),
             'schl_post_cde': _('address.postal_code'),
-            'schl_urn': _('random.custom_code', mask='######', char='@', digit='#'),
+            'schl_urn': _('random.custom_code', mask='######', digit='#'),
             'studyconsent': _('numbers.integer_number', start=0, end=1),
             'schl_child_cnt': _('numbers.integer_number', start=50, end=100),
             # Don't think we use individual year counts in the pipeline
@@ -43,9 +42,10 @@ def generate_survey_participants(file_date, records, school_urns):
     """
     survey_participants_description = (
         lambda: {
-            'participant_type': _('choice', items=['type_1', 'type_2']),  # Assume we don't need real types, but do need enrolment questions per type
-            'participant_id': _('random.custom_code', mask='P#########', char='@', digit='#'),
-            'parent_participant_id': _('random.custom_code', mask='P#########', char='@', digit='#'),
+            'participant_type': _('choice', items=['type_1', 'type_2']),
+        # Assume we don't need real types, but do need enrolment questions per type
+            'participant_id': _('random.custom_code', mask='P#########', digit='#'),
+            'parent_participant_id': _('random.custom_code', mask='P#########', digit='#'),
             'participant_first_nm': _('person.first_name'),
             'participant_family_name': _('person.last_name'),
             'email_addrs': _('person.email', domains=['gsnail.ac.uk']),
@@ -73,7 +73,7 @@ def generate_survey_responses(file_date, records, participant_ids, school_ids):
     survey_responses_description = (
         lambda: {
             'participant_id': _('choice', items=list(participant_ids)),
-            'question_id': _('random.custom_code', mask='Q#####', char='@', digit='#'),
+            'question_id': _('random.custom_code', mask='Q#####', digit='#'),
             'question_response_text': _('text.sentence'),
             'last_change_datetime': _('datetime.formatted_datetime', fmt="%d/%m/%Y %H:%M:%S", start=1800, end=1802),
             'record_created_datetime': _('datetime.formatted_datetime', fmt="%d/%m/%Y %H:%M:%S", start=1800, end=1802)
@@ -86,13 +86,13 @@ def generate_survey_responses(file_date, records, participant_ids, school_ids):
     return survey_responses
 
 
-def generate_lab_swabs(file_date, records):
+def generate_labs_swabs(file_date, records):
     """
-    Generate lab_swabs file. Depends on survey participants file.
+    Generate labs_swabs file. Depends on survey participants file.
     """
-    lab_swabs_description = (
+    labs_swabs_description = (
         lambda: {
-            'Sample':_('random.custom_code', mask='SIS########', char='@', digit='#'),
+            'Sample':_('random.custom_code', mask='SIS########', digit='#'),
             'Result': _('choice', items=["Positive", "Negative"]),
             'Date Tested': _('datetime.formatted_datetime', fmt="%Y-%m-%d %H:%M:%S UTC", start=1800, end=1802),
             'Seq-Target': "A gene",
@@ -100,11 +100,48 @@ def generate_lab_swabs(file_date, records):
         }
     )
 
-    schema = Schema(schema=lab_swabs_description)
-    lab_swabs = pd.DataFrame(schema.create(iterations=records))
-    lab_swabs.to_csv(f"lab_swabs_{file_date}.csv", index=False)
-    return lab_swabs
+    schema = Schema(schema=labs_swabs_description)
+    labs_swabs = pd.DataFrame(schema.create(iterations=records))
+    labs_swabs.to_csv(f"labs_swabs_{file_date}.csv", index=False)
+    return labs_swabs
 
+  
+def generate_labs_saliva(file_date, records):
+    """
+    Generate labs_saliva file.
+    """
+    labs_saliva_description = (
+        lambda: {
+            'ORDPATNAME': _('random.custom_code', mask='SIS########', digit='#'),
+            'SAMPLEID': _('random.custom_code', mask='H#########', digit='#'),
+            'IgG Capture Result': _('choice', items=['#r', '#n', '#e'])
+        }
+    )
+
+    schema = Schema(schema=labs_saliva_description)
+    labs_saliva = pd.DataFrame(schema.create(iterations=records))
+    labs_saliva.to_csv(f"saliva_results_{file_date}.csv", index=False)
+    return labs_saliva
+
+  
+def generate_labs_bloods(file_date, records):
+    """
+    Generate labs_bloods file.
+    """
+    labs_bloods_description = (
+        lambda: {
+            'specimenId': _('random.custom_code', mask='#########THR', digit='#'),
+            'specimenProcessedDate': _('datetime.formatted_datetime', fmt="%Y-%m-%d" + "T" + "%H:%M:%S" + "Z",
+                                       start=1800, end=1802),
+            'testResult': _('choice', items=['Positive', 'Negative'])
+        }
+    )
+
+    schema = Schema(schema=labs_bloods_description)
+    labs_bloods = pd.DataFrame(schema.create(iterations=records))
+    labs_bloods.to_csv(f"labs_bloods_{file_date}.csv", index=False)
+    return labs_bloods
+  
 
 if __name__ == "__main__":
     file_date = "18010101"
@@ -115,7 +152,7 @@ if __name__ == "__main__":
         file_date,
         40,
         schools["schl_urn"].unique().tolist()
-        )
+    )
 
     responses = generate_survey_responses(
         file_date,
@@ -124,4 +161,8 @@ if __name__ == "__main__":
         participants["schl_urn"].unique().tolist()
     )
 
-    swabs = generate_lab_swabs(file_date, 40)
+    labs_swabs = generate_lab_swabs(file_date, 10)
+
+    labs_saliva = generate_labs_saliva(file_date, 10)
+  
+    labs_bloods = generate_labs_bloods(file_date, 10)
