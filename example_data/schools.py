@@ -88,7 +88,7 @@ def generate_survey_responses(file_date, records, participant_ids, school_ids):
 
 def generate_lab_swabs(file_date, records):
     """
-    Generate lab swabs file. Depends on survey participants file.
+    Generate lab swabs file.
     """
     lab_swabs_description = (
         lambda: {
@@ -141,8 +141,8 @@ def generate_lab_saliva(file_date, records):
     lab_saliva.to_csv(f"lab_saliva_{file_date}.csv", index=False)
     return lab_saliva
 
-  
-def generate_survey_visits(file_date, records, participant_ids, swab_barcodes, blood_barcods, saliva_barcodes):
+
+def generate_survey_visits(file_date, records, participant_ids, swab_barcodes, blood_barcodes, saliva_barcodes):
     """
     Generate survey visits file. Depends on survey participants and schools files.
     """
@@ -151,7 +151,7 @@ def generate_survey_visits(file_date, records, participant_ids, swab_barcodes, b
             'participant_id': _('choice', items=list(participant_ids)),
             'visit_date': _('datetime.formatted_datetime', fmt="%Y-%m-%d %H:%M:%S UTC", start=1800, end=1802),
             'swab_Sample_barcode': _('choice', items=list(swab_barcodes) + [pd.NA]),
-            'blood_thriva_barcode': _('choice', items=list(blood_barcods) + [pd.NA]),
+            'blood_thriva_barcode': _('choice', items=list(blood_barcodes) + [pd.NA]),
             'oral_swab_barcode': _('choice', items=list(saliva_barcodes)+ [pd.NA]),
             'last_change_datetime': _('datetime.formatted_datetime', fmt="%d/%m/%Y %H:%M:%S", start=1800, end=1802),
             'record_created_datetime': _('datetime.formatted_datetime', fmt="%d/%m/%Y %H:%M:%S", start=1800, end=1802)
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     lab_swabs = generate_lab_swabs(file_date, 10)
     lab_bloods = generate_lab_bloods(file_date, 10)
     lab_saliva = generate_lab_saliva(file_date, 10)
-  
+
 
     visits = generate_survey_visits(
         file_date,
