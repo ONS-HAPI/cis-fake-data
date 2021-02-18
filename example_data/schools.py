@@ -3,11 +3,13 @@ Generate fake data for schools infection survey raw input data.
 """
 from mimesis.schema import Field, Schema
 import pandas as pd
+from datetime import datetime, timedelta
+from pathlib import Path
 
 _ = Field('en-gb', seed=42)
 
 
-def generate_survey_schools(file_date, records):
+def generate_survey_schools(directory, file_date, records):
     """
     Generate survey schools file.
     """
@@ -32,11 +34,11 @@ def generate_survey_schools(file_date, records):
 
     schema = Schema(schema=survey_schools_description)
     survey_schools = pd.DataFrame(schema.create(iterations=records))
-    survey_schools.to_csv(f"survey_schools_{file_date}.csv", index=False)
+    survey_schools.to_csv(directory / f"survey_schools_{file_date}.csv", index=False)
     return survey_schools
 
 
-def generate_survey_participants(file_date, records, school_urns):
+def generate_survey_participants(directory, file_date, records, school_urns):
     """
     Generate survey participants file. Depends on survey schools file.
     """
@@ -62,11 +64,11 @@ def generate_survey_participants(file_date, records, school_urns):
     # Type 2 doesn't have registered parents
     survey_participants.loc[survey_participants["participant_type"] == "type_2", "parent_participant_id"] = pd.NA
 
-    survey_participants.to_csv(f"survey_participants_{file_date}.csv", index=False)
+    survey_participants.to_csv(directory / f"survey_participants_{file_date}.csv", index=False)
     return survey_participants
 
 
-def generate_survey_responses(file_date, records, participant_ids, school_ids):
+def generate_survey_responses(directory, file_date, records, participant_ids, school_ids):
     """
     Generate survey responses file. Depends on survey participants and schools files.
     """
@@ -82,11 +84,11 @@ def generate_survey_responses(file_date, records, participant_ids, school_ids):
 
     schema = Schema(schema=survey_responses_description)
     survey_responses = pd.DataFrame(schema.create(iterations=records))
-    survey_responses.to_csv(f"survey_responses_{file_date}.csv", index=False)
+    survey_responses.to_csv(directory / f"survey_responses_{file_date}.csv", index=False)
     return survey_responses
 
 
-def generate_lab_swabs(file_date, records):
+def generate_lab_swabs(directory, file_date, records):
     """
     Generate lab swabs file.
     """
@@ -102,11 +104,11 @@ def generate_lab_swabs(file_date, records):
 
     schema = Schema(schema=lab_swabs_description)
     lab_swabs = pd.DataFrame(schema.create(iterations=records))
-    lab_swabs.to_csv(f"lab_swabs_{file_date}.csv", index=False)
+    lab_swabs.to_csv(directory / f"lab_swabs_{file_date}.csv", index=False)
     return lab_swabs
 
 
-def generate_lab_bloods(file_date, records):
+def generate_lab_bloods(directory, file_date, records):
     """
     Generate lab bloods file.
     """
@@ -120,11 +122,11 @@ def generate_lab_bloods(file_date, records):
 
     schema = Schema(schema=lab_bloods_description)
     lab_bloods = pd.DataFrame(schema.create(iterations=records))
-    lab_bloods.to_csv(f"lab_bloods_{file_date}.csv", index=False)
+    lab_bloods.to_csv(directory / f"lab_bloods_{file_date}.csv", index=False)
     return lab_bloods
 
 
-def generate_lab_saliva(file_date, records):
+def generate_lab_saliva(directory, file_date, records):
     """
     Generate lab saliva file.
     """
@@ -138,11 +140,11 @@ def generate_lab_saliva(file_date, records):
 
     schema = Schema(schema=lab_saliva_description)
     lab_saliva = pd.DataFrame(schema.create(iterations=records))
-    lab_saliva.to_csv(f"lab_saliva_{file_date}.csv", index=False)
+    lab_saliva.to_csv(directory / f"lab_saliva_{file_date}.csv", index=False)
     return lab_saliva
 
 
-def generate_survey_visits(file_date, records, participant_ids, swab_barcodes, blood_barcodes, saliva_barcodes):
+def generate_survey_visits(directory, file_date, records, participant_ids, swab_barcodes, blood_barcodes, saliva_barcodes):
     """
     Generate survey visits file. Depends on survey participants and schools files.
     """
@@ -160,34 +162,58 @@ def generate_survey_visits(file_date, records, participant_ids, swab_barcodes, b
 
     schema = Schema(schema=survey_visits_description)
     survey_visits = pd.DataFrame(schema.create(iterations=records))
-    survey_visits.to_csv(f"survey_visits_{file_date}.csv", index=False)
+    survey_visits.to_csv(directory / f"survey_visits_{file_date}.csv", index=False)
     return survey_visits
 
 
 if __name__ == "__main__":
-    file_date = "18010101"
+    raw_dir = Path("raw_schools")
+    swab_dir = raw_dir / "swab"
+    blood_dir = raw_dir / "blood"
+    saliva_dir = raw_dir / "saliva"
+    survey_dir = raw_dir / "survey"
+    for directory in [swab_dir, blood_dir, saliva_dir, survey_dir]:
+        directory.mkdir(parents=True, exist_ok=True)
 
-    schools = generate_survey_schools(file_date, 10)
+    file_date = datetime.strptime("18010101", "%Y%m%d")
+    lab_date_1 = datetime.strftime(file_date - timedelta(days=1), format="%Y%m%d")
+    lab_date_2 = datetime.strftime(file_date - timedelta(days=2), format="%Y%m%d")
+    file_date = datetime.strftime(file_date, format="%Y%m%d")
+
+    schools = generate_survey_schools(survey_dir, file_date, 10)
 
     participants = generate_survey_participants(
+        survey_dir,
         file_date,
         40,
         schools["schl_urn"].unique().tolist()
     )
 
     responses = generate_survey_responses(
+        survey_dir,
         file_date,
         100,
         participants["participant_id"].unique().tolist(),
         participants["schl_urn"].unique().tolist()
     )
 
-    lab_swabs = generate_lab_swabs(file_date, 10)
-    lab_bloods = generate_lab_bloods(file_date, 10)
-    lab_saliva = generate_lab_saliva(file_date, 10)
+    lab_swabs_1 = generate_lab_swabs(swab_dir, file_date, 10)
+    lab_swabs_2 = generate_lab_swabs(swab_dir, lab_date_1, 10)
+    lab_swabs_3 = generate_lab_swabs(swab_dir, lab_date_2, 10)
+    lab_swabs = pd.concat([lab_swabs_1, lab_swabs_2, lab_swabs_3])
 
+    lab_bloods_1 = generate_lab_bloods(blood_dir, file_date, 10)
+    lab_bloods_2 = generate_lab_bloods(blood_dir, lab_date_1, 10)
+    lab_bloods_3 = generate_lab_bloods(blood_dir, lab_date_2, 10)
+    lab_bloods = pd.concat([lab_bloods_1, lab_bloods_2, lab_bloods_3])
+
+    lab_saliva_1 = generate_lab_saliva(saliva_dir, file_date, 10)
+    lab_saliva_2 = generate_lab_saliva(saliva_dir, lab_date_1, 10)
+    lab_saliva_3 = generate_lab_saliva(saliva_dir, lab_date_2, 10)
+    lab_saliva = pd.concat([lab_saliva_1, lab_saliva_2, lab_saliva_3])
 
     visits = generate_survey_visits(
+        survey_dir,
         file_date,
         100,
         participants["participant_id"].unique().tolist(),
