@@ -166,13 +166,31 @@ def generate_survey_visits(directory, file_date, records, participant_ids, swab_
     return survey_visits
 
 
+def generate_question_lookup(directory, file_date, records, question_ids):
+    """
+    Generate question id to name lookup. Depends on survey responses file.
+    """
+    question_lookup_description = (
+        lambda: {
+            'question_id': _('choice', items=question_ids),
+            'new_variables_names': "_".join(_('text.words', quantity=4)).lower()
+        }
+    )
+
+    schema = Schema(schema=question_lookup_description)
+    question_lookup = pd.DataFrame(schema.create(iterations=records))
+    question_lookup.to_csv(directory / f"question_lookup_{file_date}.csv", index=False)
+    return question_lookup
+
+
 if __name__ == "__main__":
     raw_dir = Path("raw_schools")
     swab_dir = raw_dir / "swab"
     blood_dir = raw_dir / "blood"
     saliva_dir = raw_dir / "saliva"
     survey_dir = raw_dir / "survey"
-    for directory in [swab_dir, blood_dir, saliva_dir, survey_dir]:
+    lookup_dir = raw_dir / "lookup"
+    for directory in [swab_dir, blood_dir, saliva_dir, survey_dir, lookup_dir]:
         directory.mkdir(parents=True, exist_ok=True)
 
     file_date = datetime.strptime("18010101", "%Y%m%d")
@@ -220,4 +238,12 @@ if __name__ == "__main__":
         lab_swabs["Sample"].unique().tolist(),
         lab_bloods["specimenId"].unique().tolist(),
         lab_saliva["ORDPATNAME"].unique().tolist(),
+        )
+
+    question_ids = responses["question_id"].unique().tolist()
+    generate_question_lookup(
+        lookup_dir,
+        file_date,
+        len(question_ids),
+        question_ids
         )
